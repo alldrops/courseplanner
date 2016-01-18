@@ -2,9 +2,9 @@ var request = require('request');
 var cheerio = require('cheerio');
 var URL = require('url-parse');
 
-var START_URL = "http://www.arstechnica.com";
+var START_URL = "http://www.bcit.ca/study/programs/630pmcert#courses";
 var SEARCH_WORD = "stemming";
-var MAX_PAGES_TO_VISIT = 10;
+var MAX_PAGES_TO_VISIT = 99999;
 
 var pagesVisited = {};
 var numPagesVisited = 0;
