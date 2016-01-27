@@ -2,71 +2,61 @@ var request = require('request');
 var cheerio = require('cheerio');
 var URL = require('url-parse');
 
-var START_URL = "http://www.bcit.ca/study/programs/630pmcert#courses";
-var SEARCH_WORD = "stemming";
-var MAX_PAGES_TO_VISIT = 99999;
-
-var pagesVisited = {};
-var numPagesVisited = 0;
-var pagesToVisit = [];
-var url = new URL(START_URL);
-var baseUrl = url.protocol + "//" + url.hostname;
-
-pagesToVisit.push(START_URL);
-crawl();
-
-function crawl() {
-    if(numPagesVisited >= MAX_PAGES_TO_VISIT) {
-        console.log("Reached max limit of number of pages to visit.");
-        return;
+var pageToVisit = "http://www.bcit.ca/study/programs/630pmcert#courses";
+console.log("Visiting page " + pageToVisit);
+request(pageToVisit, function(error, response, body) {
+   if(error) {
+        console.log("Error: " + error);
     }
-    
-    var nextPage = pagesToVisit.pop();
-    if (nextPage in pagesVisited) {
-        // We've already visited this page, so repeat the crawl
-        crawl();
-    } else {
-        // New page we haven't visited
-        visitPage(nextPage, crawl);
-    }
-}
-
-function visitPage(url, callback) {
-    // Add page to our set
-    pagesVisited[url] = true;
-    numPagesVisited++;
-
-    // Make the request
-    console.log("Visiting page " + url);
-    request(url, function(error, response, body) {
-        // Check status code (200 is HTTP OK)
-        console.log("Status code: " + response.statusCode);
-        if(response.statusCode !== 200) {
-            callback();
-            return;
-        }
+    // Check status code (200 is HTTP OK)
+    console.log("Status code: " + response.statusCode);
+    if(response.statusCode === 200) {
         // Parse the document body
-        var $ = cheerio.load(body);
-        var isWordFound = searchForWord($, SEARCH_WORD);
-        if(isWordFound) {
-            console.log('Word ' + SEARCH_WORD + ' found at page ' + url);
-        } else {
-            collectInternalLinks($);
-            // In this short program, our callback is just calling crawl()
-            callback();
+        getCourses(body);
+    }
+});
+
+function getCourses(body) {
+    var $ = cheerio.load(body);
+
+    var courses = [
+        {
+            id: 'BLAW 3100',
+            name: 'Business Law',
+            credits: '4.0'
+        },
+        {
+            id: 'MDIA 1040',
+            name: 'Graphics 1',
+            credits: '3.0'  
+        },
+        {
+            id: 'MDIA 1049',
+            name: 'InDesign MAC 1',
+            credits: '1.5'
+        },
+        {
+            id: 'MDIA 2049',
+            name: 'InDesign MAC 2',
+            credits: '1.5'
         }
+    ];
+    var dom = $('#programmatrix td');
+
+    courses.forEach(function(item, i) {
+        console.log(item);
+        // if($(item).hasClass('course_number')) {
+        //     $(this).find('a').find('sup').remove();
+        //     console.log($(this).find('a').html());
+        // }
     });
+
+    //readCourses(courses);
 }
 
-function searchForWord($, word) {
-    var bodyText = $('html > body').text().toLowerCase();
-    return(bodyText.indexOf(word.toLowerCase()) !== -1);
-}
+function readCourses(courses) {
 
-function collectInternalLinks($) {
-    var relativeLinks = $("a[href^='/']");
-    console.log("Found " + relativeLinks.length + " relative links on page");
-    relativeLinks.each(function() {
-        pagesToVisit.push(baseUrl + $(this).attr('href'));
-    });
+    // for (var i = 0; i < courses.length; i++) {
+    //     console.log(courses[i]);
+    // }
 }
